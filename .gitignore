@@ -58,3 +58,4 @@ coding-skill/
 # Database TLS certificates and private keys
 certs/*
 !certs/.gitkeep
+!certs/db-cacert.pem
