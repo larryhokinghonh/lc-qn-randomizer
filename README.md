@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LeetCode Question Randomizer
 
-## Getting Started
+LeetCode Question Randomizer built with Next.js.
 
-First, run the development server:
+## Tech Stack
+
+- Next.js 16, React 19, TypeScript
+- Tailwind CSS 4
+- PostgreSQL via `pg`
+- Motion, GSAP, and React Bits-inspired animation components
+
+## Project Structure
+
+- `src/app/api/`: database-backed API routes for questions and counter.
+- `src/components/`: reusable UI pieces such as filters, slot card, footer, and animation components.
+- `src/hooks/`: client state/data hooks for questions, filters, slot behavior, and theme.
+- `src/lib/`: database pooling and shared question utilities.
+- `src/types/`: shared TypeScript types.
+
+## Environment
+
+Use `.env` for the local development database:
+`npm run dev` loads `.env` and connects to the local database.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5433/lc_qn_randomizer_dev
+DATABASE_POOL_MAX=5
+SSL_MODE=disable
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Use `.env.prod` when intentionally running the local app against production:
+`npm run dev:prod` explicitly loads `.env.prod` and connects to production.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE
+DATABASE_POOL_MAX=5
+SSL_MODE=verify-full
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Restart the development server when switching environments.

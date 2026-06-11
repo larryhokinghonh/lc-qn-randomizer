@@ -22,7 +22,11 @@
 
 # misc
 .DS_Store
-*.pem
+/certs/*
+!/certs/db-cacert.pem
+*.key
+*.p12
+*.pfx
 
 # debug
 npm-debug.log*
@@ -39,3 +43,18 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local LLM and coding-agent configuration
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.agents/
+.codex/
+.coding-skill/
+coding-skill/
+.cursor/
+.windsurf/
+
+# Database TLS certificates and private keys
+certs/*
+!certs/.gitkeep
