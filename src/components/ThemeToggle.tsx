@@ -31,14 +31,14 @@ export default function ThemeToggle({ theme, onToggle }: ThemeToggleProps) {
             transition={{ duration: 0.2, ease: "easeOut" }}
           >
             <Image
-              alt=""
+              alt="dark-mode"
               className="block dark:hidden"
               height={22}
               src="/dark-mode.svg"
               width={22}
             />
             <Image
-              alt=""
+              alt="light-mode"
               className="hidden dark:block"
               height={22}
               src="/light-mode.svg"
