@@ -35,6 +35,7 @@ Use `.env.prod` when intentionally running the local app against production:
 DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE
 DATABASE_POOL_MAX=5
 SSL_MODE=verify-full
+DATABASE_CA_CERT=-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----
 ```
 
 Restart the development server when switching environments.
