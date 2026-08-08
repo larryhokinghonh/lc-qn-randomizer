@@ -1,10 +1,8 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-
 import { Pool } from "pg";
 
 const connectionString = process.env.DATABASE_URL;
 const sslMode = process.env.SSL_MODE;
+const databaseCaCert = process.env.DATABASE_CA_CERT;
 
 if (!connectionString) {
   throw new Error("DATABASE_URL is not configured.");
@@ -29,16 +27,20 @@ if (sslMode === "disable" && !loopbackHosts.has(poolConnectionString.hostname)) 
 const ssl =
   sslMode === "verify-full"
     ? {
-        ca: readFileSync(
-          resolve(
-            /* turbopackIgnore: true */ process.cwd(),
-            "certs/db-cacert.pem",
-          ),
-          "utf8",
-        ),
+        ca: getDatabaseCaCert(),
         rejectUnauthorized: true,
       }
     : false;
+
+function getDatabaseCaCert() {
+  if (!databaseCaCert) {
+    throw new Error(
+      "DATABASE_CA_CERT is required.",
+    );
+  }
+
+  return databaseCaCert.replace(/\\n/g, "\n");
+}
 
 const globalForPg = globalThis as typeof globalThis & {
   pgPool?: Pool;
