@@ -1,11 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import type { PointerEvent } from "react";
 import { useMotionValue } from "motion/react";
 
-const WIDTH_KEY = "lc-question-randomizer.sidebar-width.v1";
-const DEFAULT_WIDTH = 400;
+const DEFAULT_WIDTH = 600;
 const MIN_WIDTH = 320;
 
 type ResizeDrag = {
@@ -13,22 +12,45 @@ type ResizeDrag = {
   pointerId: number;
   startX: number;
   startWidth: number;
+  nextWidth: number;
   previousCursor: string;
   previousUserSelect: string;
 };
 
-export function useSidebarWidth(canResize: boolean) {
+type SidebarWidthOptions = {
+  canResize: boolean;
+  isOpen: boolean;
+};
+
+export function useSidebarWidth({ canResize, isOpen }: SidebarWidthOptions) {
   const width = useMotionValue(DEFAULT_WIDTH);
-  const preferredWidthRef = useRef(DEFAULT_WIDTH);
   const dragRef = useRef<ResizeDrag | null>(null);
   const ignoreClickRef = useRef(false);
   const clickFrameRef = useRef<number | null>(null);
+  const resizeFrameRef = useRef<number | null>(null);
+
+  const applyWidth = useCallback(() => {
+    resizeFrameRef.current = null;
+    const nextWidth = Math.min(dragRef.current?.nextWidth ?? width.get(), window.innerWidth);
+    if (width.get() !== nextWidth) width.set(nextWidth);
+  }, [width]);
+
+  const scheduleWidth = useCallback(() => {
+    if (resizeFrameRef.current === null) {
+      resizeFrameRef.current = window.requestAnimationFrame(applyWidth);
+    }
+  }, [applyWidth]);
 
   const endResize = useCallback(() => {
     const drag = dragRef.current;
 
     if (!drag) {
       return;
+    }
+
+    if (resizeFrameRef.current !== null) {
+      window.cancelAnimationFrame(resizeFrameRef.current);
+      applyWidth();
     }
 
     dragRef.current = null;
@@ -40,34 +62,39 @@ export function useSidebarWidth(canResize: boolean) {
       drag.handle.releasePointerCapture(drag.pointerId);
     }
 
-    try {
-      window.localStorage.setItem(WIDTH_KEY, JSON.stringify(preferredWidthRef.current));
-    } catch {
-      // Width is a nonessential preference; resizing still works without storage.
-    }
-
-    // A pointer release outside the panel must not become a backdrop click.
     ignoreClickRef.current = true;
     clickFrameRef.current = window.requestAnimationFrame(() => {
       ignoreClickRef.current = false;
       clickFrameRef.current = null;
     });
-  }, []);
+  }, [applyWidth]);
+
+  const clearResizeState = useCallback(() => {
+    endResize();
+    if (clickFrameRef.current !== null) {
+      window.cancelAnimationFrame(clickFrameRef.current);
+      clickFrameRef.current = null;
+    }
+    if (resizeFrameRef.current !== null) {
+      window.cancelAnimationFrame(resizeFrameRef.current);
+      resizeFrameRef.current = null;
+    }
+    ignoreClickRef.current = false;
+  }, [endResize]);
+
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      clearResizeState();
+      width.set(DEFAULT_WIDTH);
+    }
+  }, [isOpen, clearResizeState, width]);
 
   useEffect(() => {
-    try {
-      const saved: unknown = JSON.parse(window.localStorage.getItem(WIDTH_KEY) ?? "null");
-
-      if (typeof saved === "number" && Number.isFinite(saved) && saved >= MIN_WIDTH) {
-        preferredWidthRef.current = saved;
-      }
-    } catch {
-      // Keep the default width when this preference is unavailable or invalid.
-    }
+    if (!isOpen) return clearResizeState;
 
     function updateViewportWidth() {
       endResize();
-      width.set(Math.min(preferredWidthRef.current, window.innerWidth));
+      scheduleWidth();
     }
 
     updateViewportWidth();
@@ -75,13 +102,9 @@ export function useSidebarWidth(canResize: boolean) {
 
     return () => {
       window.removeEventListener("resize", updateViewportWidth);
-      endResize();
-
-      if (clickFrameRef.current !== null) {
-        window.cancelAnimationFrame(clickFrameRef.current);
-      }
+      clearResizeState();
     };
-  }, [endResize, width]);
+  }, [isOpen, endResize, scheduleWidth, clearResizeState]);
 
   useEffect(() => {
     if (!canResize) {
@@ -107,6 +130,7 @@ export function useSidebarWidth(canResize: boolean) {
       pointerId: event.pointerId,
       startX: event.clientX,
       startWidth: width.get(),
+      nextWidth: width.get(),
       previousCursor: root.style.cursor,
       previousUserSelect: root.style.userSelect,
     };
@@ -128,8 +152,8 @@ export function useSidebarWidth(canResize: boolean) {
       window.innerWidth,
       Math.max(MIN_WIDTH, drag.startWidth + event.clientX - drag.startX),
     );
-    preferredWidthRef.current = nextWidth;
-    width.set(nextWidth);
+    drag.nextWidth = nextWidth;
+    scheduleWidth();
   }
 
   function shouldIgnoreBackdropClick() {

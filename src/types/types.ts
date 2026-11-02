@@ -31,3 +31,9 @@ export type QuestionTopic = string;
 export type SpecialTopic = string;
 
 export type Theme = "light" | "dark";
+
+export type QuestionListNavigation = {
+  focusFirst: (query: string) => boolean;
+  focusLast: () => boolean;
+  cancelPendingFocus: () => void;
+};

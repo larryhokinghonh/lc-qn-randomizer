@@ -1,4 +1,5 @@
 import type { Question, QuestionNote } from "@/types/types";
+import { compareQuestionNumbers } from "@/lib/sidebar-questions";
 
 export const QUESTION_NOTE_KEY_PREFIX = "lc-question-randomizer.note.v1:";
 
@@ -32,11 +33,7 @@ export function formatQuestionNotes(
 
   return Array.from(notes)
     .filter((note) => note.text.trim().length > 0)
-    .sort((first, second) =>
-      first.question_number.localeCompare(second.question_number, undefined, {
-        numeric: true,
-      }),
-    )
+    .sort((first, second) => compareQuestionNumbers(first.question_number, second.question_number))
     .map((note) => {
       const question = questionsByNumber.get(note.question_number) ?? note;
 

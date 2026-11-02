@@ -4,6 +4,9 @@ import { useCallback, useEffect, useEffectEvent, useRef, useState } from "react"
 import type { KeyboardEvent, UIEvent } from "react";
 import { useReducedMotion } from "motion/react";
 
+import { flushQuestionNotes } from "@/lib/question-notes-store";
+import type { QuestionListNavigation } from "@/types/types";
+
 const DESKTOP_QUERY = "(min-width: 640px)";
 type SidebarPhase = "closed" | "open" | "closing";
 
@@ -12,6 +15,7 @@ export function useQuestionSidebar() {
   const toggleRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const listNavigationRef = useRef<QuestionListNavigation | null>(null);
   const scrollPositionRef = useRef(0);
   const [phase, setPhase] = useState<SidebarPhase>("closed");
   const [questionSearch, setQuestionSearch] = useState("");
@@ -22,6 +26,7 @@ export function useQuestionSidebar() {
   >(null);
 
   const finishClosing = useCallback(() => {
+    flushQuestionNotes();
     const isDesktop = window.matchMedia(DESKTOP_QUERY).matches;
 
     if (isDesktop) {
@@ -40,6 +45,8 @@ export function useQuestionSidebar() {
     if (!dialogRef.current?.open) {
       return;
     }
+
+    flushQuestionNotes();
 
     if (
       !window.matchMedia(DESKTOP_QUERY).matches ||
@@ -67,19 +74,23 @@ export function useQuestionSidebar() {
   }
 
   function changeQuestionSearch(value: string) {
+    listNavigationRef.current?.cancelPendingFocus();
     setQuestionSearch(value);
+  }
+
+  const resetScrollPosition = useCallback(() => {
     scrollPositionRef.current = 0;
 
     if (listRef.current) {
       listRef.current.scrollTop = 0;
     }
-  }
+  }, []);
 
-  function toggleQuestion(questionNumber: string) {
+  const toggleQuestion = useCallback((questionNumber: string) => {
     setExpandedQuestionNumber((currentNumber) =>
       currentNumber === questionNumber ? null : questionNumber,
     );
-  }
+  }, []);
 
   function rememberScrollPosition(event: UIEvent<HTMLDivElement>) {
     if (dialogRef.current?.open && window.matchMedia(DESKTOP_QUERY).matches) {
@@ -88,6 +99,7 @@ export function useQuestionSidebar() {
   }
 
   function handleDialogKeyDown(event: KeyboardEvent<HTMLDialogElement>) {
+    if (event.defaultPrevented) return;
     if (event.key === "Escape") {
       event.preventDefault();
       closeSidebar();
@@ -103,10 +115,14 @@ export function useQuestionSidebar() {
     >("button:not(:disabled), a[href], input:not(:disabled), textarea:not(:disabled)");
     const first = controls.item(0);
     const last = controls.item(controls.length - 1);
+    const search = searchRef.current;
 
     if (event.shiftKey && document.activeElement === first) {
       event.preventDefault();
-      last?.focus();
+      if (!listNavigationRef.current?.focusLast()) last?.focus();
+    } else if (!event.shiftKey && search && document.activeElement === search) {
+      event.preventDefault();
+      if (!listNavigationRef.current?.focusFirst(search.value.trim().toLowerCase())) first?.focus();
     } else if (!event.shiftKey && document.activeElement === last) {
       event.preventDefault();
       first?.focus();
@@ -157,12 +173,14 @@ export function useQuestionSidebar() {
     finishClosing,
     handleDialogKeyDown,
     isOpen,
+    listNavigationRef,
     listRef,
     openSidebar,
     phase,
     prefersReducedMotion,
     questionSearch,
     rememberScrollPosition,
+    resetScrollPosition,
     searchRef,
     toggleQuestion,
     toggleRef,

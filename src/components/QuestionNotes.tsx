@@ -1,64 +1,30 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useRef } from "react";
+import { useEffect, useId } from "react";
+
+import { useQuestionNote } from "@/hooks/useQuestionNotes";
+import { flushQuestionNotes } from "@/lib/question-notes-store";
+import type { Question } from "@/types/types";
 
 type QuestionNotesProps = {
-  onChange: (value: string) => void;
-  questionNumber: string;
-  value: string;
+  question: Question;
 };
 
-function fitEditor(editor: HTMLTextAreaElement) {
-  editor.style.height = "auto";
-  editor.style.height = `${editor.scrollHeight + 2}px`;
-}
-
-export default function QuestionNotes({
-  onChange,
-  questionNumber,
-  value,
-}: QuestionNotesProps) {
+export default function QuestionNotes({ question }: QuestionNotesProps) {
+  const { text, setText } = useQuestionNote(question);
   const id = useId();
-  const editorRef = useRef<HTMLTextAreaElement>(null);
-
-  useLayoutEffect(() => {
-    if (editorRef.current) {
-      fitEditor(editorRef.current);
-    }
-  }, [value]);
-
-  useEffect(() => {
-    const editor = editorRef.current;
-
-    if (!editor) {
-      return;
-    }
-
-    let previousWidth = editor.clientWidth;
-    const observer = new ResizeObserver(() => {
-      if (editor.clientWidth !== previousWidth) {
-        previousWidth = editor.clientWidth;
-        fitEditor(editor);
-      }
-    });
-    observer.observe(editor);
-
-    return () => observer.disconnect();
-  }, []);
+  useEffect(() => flushQuestionNotes, []);
 
   return (
     <div className="space-y-2">
-      <label className="block font-semibold" htmlFor={id}>
-        Notes<span className="sr-only"> for question {questionNumber}</span>
-      </label>
+      <label className="block font-semibold" htmlFor={id}>Notes</label>
       <textarea
-        className="block w-full resize-none overflow-hidden rounded-lg border border-zinc-300 bg-white px-3 py-3 text-sm leading-5 text-zinc-950 placeholder:text-zinc-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffa116] dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-400"
+        className="block h-[calc(4lh+1.5rem+2px)] min-h-[calc(4lh+1.5rem+2px)] w-full resize-y overflow-y-auto rounded-lg border border-zinc-300 bg-white px-3 py-3 text-sm leading-5 text-zinc-950 placeholder:text-zinc-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffa116] dark:border-zinc-600 dark:bg-zinc-900 dark:text-zinc-50 dark:placeholder:text-zinc-400"
         id={id}
-        onChange={(event) => onChange(event.target.value)}
+        onBlur={flushQuestionNotes}
+        onChange={(event) => setText(event.target.value)}
         placeholder="Write your notes…"
-        ref={editorRef}
-        rows={4}
-        value={value}
+        value={text}
       />
     </div>
   );
