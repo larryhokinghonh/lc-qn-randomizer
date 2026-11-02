@@ -48,7 +48,7 @@ export default function ScrollNavbar({
           initial={{ opacity: 0, y: -16 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
         >
-          <div className="mx-auto flex h-14 w-full max-w-4xl items-center justify-between gap-4 px-2">
+          <div className="mx-auto flex h-14 w-full max-w-4xl items-center justify-between gap-4 px-10 sm:px-20 lg:px-2">
             <Link
               className="min-w-0 truncate text-sm font-semibold text-zinc-950 transition-colors duration-100 dark:text-zinc-50 sm:text-base"
               href="/"

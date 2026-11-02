@@ -10,6 +10,13 @@ export type Question = {
   special_topics: string[];
 };
 
+export type QuestionNote = {
+  question_number: string;
+  name: string;
+  url: string;
+  text: string;
+};
+
 export type QuestionsResponse = {
   questions: Question[];
   synced_at: string;
