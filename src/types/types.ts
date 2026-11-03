@@ -10,6 +10,13 @@ export type Question = {
   special_topics: string[];
 };
 
+export type QuestionNote = {
+  question_number: string;
+  name: string;
+  url: string;
+  text: string;
+};
+
 export type QuestionsResponse = {
   questions: Question[];
   synced_at: string;
@@ -24,3 +31,9 @@ export type QuestionTopic = string;
 export type SpecialTopic = string;
 
 export type Theme = "light" | "dark";
+
+export type QuestionListNavigation = {
+  focusFirst: (query: string) => boolean;
+  focusLast: () => boolean;
+  cancelPendingFocus: () => void;
+};

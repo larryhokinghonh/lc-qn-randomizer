@@ -49,7 +49,7 @@ export default function RevealedQuestionOverlay({
             >
               &nbsp;
             </span>
-            <p className="break-words text-sm text-zinc-300 sm:absolute sm:bottom-4 sm:left-8 sm:right-8">
+            <p className="wrap-break-word text-sm text-zinc-300 sm:absolute sm:bottom-4 sm:left-8 sm:right-8">
               {question.topics.length > 0
                 ? question.topics.join(" / ")
                 : "No topics assigned."}

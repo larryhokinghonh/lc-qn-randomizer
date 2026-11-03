@@ -111,7 +111,7 @@ export default function QuestionFilters({
                   type="search"
                   value={topicSearch}
                 />
-                <div className="scrollbar-none max-h-56 overflow-y-auto [mask-image:linear-gradient(to_bottom,transparent,black_20px,black_calc(100%-20px),transparent)] [webkit-mask-image:linear-gradient(to_bottom,transparent,black_20px,black_calc(100%-20px),transparent)]">
+                <div className="scrollbar-none max-h-56 overflow-y-auto mask-[linear-gradient(to_bottom,transparent,black_20px,black_calc(100%-20px),transparent)] [webkit-mask-image:linear-gradient(to_bottom,transparent,black_20px,black_calc(100%-20px),transparent)]">
                   {filteredQuestionTopics.map((topic) => {
                     const isSelected = selectedQuestionTopics.includes(topic);
 

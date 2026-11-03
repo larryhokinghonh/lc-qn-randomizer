@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import Footer from "@/components/Footer";
 import QuestionFilters from "@/components/QuestionFilters";
+import QuestionSidebar from "@/components/QuestionSidebar";
 import ScrollNavbar from "@/components/ScrollNavbar";
 import ScrollReveal from "@/components/ScrollReveal";
 import SlotCard from "@/components/SlotCard";
@@ -54,6 +55,11 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-1 flex-col bg-white font-sans text-zinc-950 transition-colors duration-300 dark:bg-zinc-800 dark:text-zinc-50">
+      <QuestionSidebar
+        dataError={dataError}
+        isLoadingQuestions={isLoadingQuestions}
+        questions={questions}
+      />
       <ScrollNavbar
         onToggleTheme={toggleTheme}
         theme={theme}
