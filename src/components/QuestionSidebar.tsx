@@ -63,8 +63,7 @@ export default function QuestionSidebar({
   const preparedQuestions = useMemo(() => prepareSidebarQuestions(questions), [questions]);
   const deferredQuery = useDeferredValue(questionSearch.trim().toLowerCase());
   const animationState = phase === "open" ? "open" : "closed";
-  const toggleClassName =
-    "flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-zinc-300 bg-white text-zinc-950 transition-colors hover:border-[#ffa116] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffa116] motion-reduce:transition-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50";
+  const toggleClassName = "flex size-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-zinc-300 bg-white text-zinc-950 transition-colors hover:border-[#ffa116] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ffa116] motion-reduce:transition-none dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-50";
 
   return (
     <>

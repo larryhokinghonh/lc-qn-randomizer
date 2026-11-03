@@ -89,7 +89,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${manrope.variable} dark theme-ready h-full scrollbar-none antialiased`}
+      className={`${manrope.variable} dark theme-ready h-full scrollbar-none scroll-smooth antialiased`}
     >
       <head>
         <Script
