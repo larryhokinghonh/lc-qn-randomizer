@@ -10,6 +10,10 @@ import type {
 
 const QUESTIONS_CACHE_KEY = "lc-question-randomizer.questions";
 const QUESTIONS_SYNCED_AT_CACHE_KEY = "lc-question-randomizer.synced-at";
+const QUESTIONS_CACHE_VERSION_KEY = "lc-question-randomizer.questions-version";
+
+// Increase this value when users' cache needs a full update
+const QUESTIONS_CACHE_VERSION = "2";
 const DIFFICULTIES = new Set(["Easy", "Medium", "Hard"]);
 
 function isStringArray(value: unknown): value is string[] {
@@ -77,6 +81,7 @@ function clearQuestionCache() {
   try {
     window.localStorage.removeItem(QUESTIONS_CACHE_KEY);
     window.localStorage.removeItem(QUESTIONS_SYNCED_AT_CACHE_KEY);
+    window.localStorage.removeItem(QUESTIONS_CACHE_VERSION_KEY);
   } catch {
     return;
   }
@@ -112,6 +117,8 @@ function getCachedQuestions() {
     return {
       questions,
       syncedAt: cachedSyncedAt,
+      requiresFullRefresh:
+        window.localStorage.getItem(QUESTIONS_CACHE_VERSION_KEY) !== QUESTIONS_CACHE_VERSION,
     };
   } catch {
     clearQuestionCache();
@@ -123,6 +130,7 @@ function cacheQuestions(questions: Question[], syncedAt: string) {
   try {
     window.localStorage.setItem(QUESTIONS_CACHE_KEY, JSON.stringify(questions));
     window.localStorage.setItem(QUESTIONS_SYNCED_AT_CACHE_KEY, syncedAt);
+    window.localStorage.setItem(QUESTIONS_CACHE_VERSION_KEY, QUESTIONS_CACHE_VERSION);
   } catch {
     return;
   }
@@ -169,7 +177,8 @@ export function useQuestionsData() {
       }
 
       async function loadQuestions() {
-        const questionsUrl = cachedQuestionData
+        const useIncrementalSync = cachedQuestionData !== null && !cachedQuestionData.requiresFullRefresh;
+        const questionsUrl = useIncrementalSync
           ? `/api/questions?updated_after=${encodeURIComponent(
               cachedQuestionData.syncedAt,
             )}`
@@ -190,7 +199,7 @@ export function useQuestionsData() {
           return;
         }
 
-        const nextQuestions = cachedQuestionData
+        const nextQuestions = useIncrementalSync
           ? mergeQuestions(
               cachedQuestionData.questions,
               questionsData.questions,

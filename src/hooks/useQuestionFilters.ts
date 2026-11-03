@@ -27,12 +27,15 @@ export function useQuestionFilters(questions: Question[]) {
   const specialTopics = Array.from(
     new Set(questions.flatMap((question) => question.special_topics)),
   ).sort();
+  const availableSelectedSpecialTopics = selectedSpecialTopics.filter((topic) =>
+    specialTopics.includes(topic),
+  );
   const questionTopics = Array.from(
     new Set(questions.flatMap((question) => question.topics)),
   ).sort();
   const questionPool = getFilteredQuestions(
     questions,
-    selectedSpecialTopics,
+    availableSelectedSpecialTopics,
     selectedQuestionTopics,
     selectedDifficulties,
   );
@@ -41,11 +44,14 @@ export function useQuestionFilters(questions: Question[]) {
   );
 
   function toggleSpecialTopic(topic: SpecialTopic) {
-    setSelectedSpecialTopics((currentTopics) =>
-      currentTopics.includes(topic)
-        ? currentTopics.filter((currentTopic) => currentTopic !== topic)
-        : [...currentTopics, topic],
-    );
+    setSelectedSpecialTopics((currentTopics) => {
+      const availableTopics = currentTopics.filter((currentTopic) =>
+        specialTopics.includes(currentTopic),
+      );
+      return availableTopics.includes(topic)
+        ? availableTopics.filter((currentTopic) => currentTopic !== topic)
+        : [...availableTopics, topic];
+    });
   }
 
   function toggleQuestionTopic(topic: QuestionTopic) {
@@ -76,7 +82,7 @@ export function useQuestionFilters(questions: Question[]) {
     questionPool,
     selectedDifficulties,
     selectedQuestionTopics,
-    selectedSpecialTopics,
+    selectedSpecialTopics: availableSelectedSpecialTopics,
     setTopicSearch,
     specialTopics,
     toggleDifficulty,
