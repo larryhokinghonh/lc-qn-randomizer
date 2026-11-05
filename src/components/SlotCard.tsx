@@ -1,16 +1,17 @@
 "use client";
 
 import RotatingText from "@/components/RotatingText";
+import { QuestionProgressPrompt } from "@/components/QuestionProgress";
 import ShinyText from "@/components/ShinyText/ShinyText";
 import { REVEAL_FADE_DURATION, type SpinItem } from "@/lib/question-utils";
-import type { Question } from "@/types/types";
+import type { Question, RandomizationWarning } from "@/types/types";
 
 import RevealedQuestionOverlay from "./RevealedQuestionOverlay";
 
 type SlotCardProps = {
   currentSlotQuestion: Question | null;
   dataError: string;
-  filterWarning: boolean;
+  filterWarning: RandomizationWarning | null;
   handleRandomize: (
     isLoadingQuestions: boolean,
     dataError: string,
@@ -19,10 +20,12 @@ type SlotCardProps = {
   hasRandomized: boolean;
   isLoadingQuestions: boolean;
   isQuestionVisible: boolean;
+  isProgressPromptOpen: boolean;
   isSlotLanded: boolean;
   isSpinning: boolean;
   onSpinTextAnimationComplete: (index: number) => void;
   onSlotTextChange: (index: number) => void;
+  onQuestionLinkOpen: (number: string) => void;
   revealedQuestion: Question | null;
   spinItems: SpinItem[];
   spinKey: number;
@@ -36,10 +39,12 @@ export default function SlotCard({
   hasRandomized,
   isLoadingQuestions,
   isQuestionVisible,
+  isProgressPromptOpen,
   isSlotLanded,
   isSpinning,
   onSpinTextAnimationComplete,
   onSlotTextChange,
+  onQuestionLinkOpen,
   revealedQuestion,
   spinItems,
   spinKey,
@@ -74,6 +79,7 @@ export default function SlotCard({
           <RevealedQuestionOverlay
             isVisible={isQuestionVisible}
             question={revealedQuestion}
+            onQuestionLinkOpen={onQuestionLinkOpen}
           />
         )}
 
@@ -86,6 +92,12 @@ export default function SlotCard({
             <a
               className="block w-full transition hover:text-[#ffa116]"
               href={slotUrl}
+              onClick={() => {
+                if (currentSlotQuestion) onQuestionLinkOpen(currentSlotQuestion.question_number);
+              }}
+              onAuxClick={(event) => {
+                if (event.button === 1 && currentSlotQuestion) onQuestionLinkOpen(currentSlotQuestion.question_number);
+              }}
               rel="noreferrer"
               target="_blank"
             >
@@ -117,13 +129,18 @@ export default function SlotCard({
         </div>
       </section>
 
+      {isProgressPromptOpen && revealedQuestion && (
+        <QuestionProgressPrompt question={revealedQuestion} />
+      )}
+
       {filterWarning && (
         <div
           className="mb-5 border border-amber-500 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900 transition-colors duration-300 dark:border-amber-400 dark:bg-amber-950 dark:text-amber-100"
           role="alert"
         >
-          No questions match the selected filters. Adjust the filters and try
-          again.
+          {filterWarning === "all-solved"
+            ? "All questions matching these filters are solved."
+            : "No questions match the selected filters. Adjust the filters and try again."}
         </div>
       )}
     </>

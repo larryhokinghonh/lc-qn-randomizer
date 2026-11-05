@@ -111,8 +111,8 @@ export function useQuestionSidebar() {
     }
 
     const controls = event.currentTarget.querySelectorAll<
-      HTMLButtonElement | HTMLAnchorElement | HTMLInputElement | HTMLTextAreaElement
-    >("button:not(:disabled), a[href], input:not(:disabled), textarea:not(:disabled)");
+      HTMLButtonElement | HTMLAnchorElement | HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >("button:not(:disabled), a[href], input:not(:disabled), textarea:not(:disabled), select:not(:disabled)");
     const first = controls.item(0);
     const last = controls.item(controls.length - 1);
     const search = searchRef.current;

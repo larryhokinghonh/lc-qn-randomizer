@@ -1,6 +1,7 @@
 "use client";
 
 import FadeContent from "@/components/FadeContent";
+import { QuestionProgressBadge } from "@/components/QuestionProgress";
 import {
   getDifficultyColorClass,
   REVEAL_FADE_DURATION,
@@ -10,11 +11,13 @@ import type { Question } from "@/types/types";
 type RevealedQuestionOverlayProps = {
   isVisible: boolean;
   question: Question;
+  onQuestionLinkOpen: (number: string) => void;
 };
 
 export default function RevealedQuestionOverlay({
   isVisible,
   question,
+  onQuestionLinkOpen,
 }: RevealedQuestionOverlayProps) {
   return (
     <div className="absolute inset-x-5 bottom-5 top-5 overflow-hidden sm:inset-x-8 sm:bottom-auto sm:top-8">
@@ -27,6 +30,10 @@ export default function RevealedQuestionOverlay({
           <a
             className="flex w-full flex-col gap-4 sm:block"
             href={question.url}
+            onClick={() => onQuestionLinkOpen(question.question_number)}
+            onAuxClick={(event) => {
+              if (event.button === 1) onQuestionLinkOpen(question.question_number);
+            }}
             rel="noreferrer"
             target="_blank"
           >
@@ -37,6 +44,7 @@ export default function RevealedQuestionOverlay({
                 Question {question.question_number} {" "}/{" "}
                 {question.difficulty}
               </span>
+              <QuestionProgressBadge number={question.question_number} />
               {question.needs_premium && (
                 <span className="inline-flex border border-[#ffa116] px-2 py-0.5 text-xs font-semibold text-[#ffa116]">
                   PREMIUM

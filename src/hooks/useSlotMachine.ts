@@ -8,11 +8,12 @@ import {
   DEFAULT_SLOT_TEXT,
   type SpinItem,
 } from "@/lib/question-utils";
-import type { Question } from "@/types/types";
+import type { Question, RandomizationWarning } from "@/types/types";
 
 export function useSlotMachine(
   questions: Question[],
   questionPool: Question[],
+  eligibleQuestionPool: Question[],
   incrementRollCount: () => Promise<void>,
 ) {
   const currentSlotTextRef = useRef(DEFAULT_SLOT_TEXT);
@@ -36,6 +37,12 @@ export function useSlotMachine(
   const [isSlotLanded, setIsSlotLanded] = useState(false);
   const [isQuestionVisible, setIsQuestionVisible] = useState(false);
   const [filterWarning, setFilterWarning] = useState(false);
+  const [isProgressPromptOpen, setIsProgressPromptOpen] = useState(false);
+  const warning: RandomizationWarning | null = !filterWarning
+    ? null
+    : questionPool.length === 0
+      ? "no-matches"
+      : eligibleQuestionPool.length === 0 ? "all-solved" : null;
   const initialSpinItems = useMemo(
     () => buildInitialSpinItems(questions),
     [questions],
@@ -72,17 +79,17 @@ export function useSlotMachine(
     dataError: string,
     revealFadeDuration: number,
   ) {
-    if (isLoadingQuestions || dataError) {
+    if (isLoadingQuestions || dataError || isSpinning) {
       return;
     }
 
-    if (questionPool.length === 0) {
+    if (eligibleQuestionPool.length === 0) {
       setFilterWarning(true);
       return;
     }
 
     const nextQuestion =
-      questionPool[Math.floor(Math.random() * questionPool.length)];
+      eligibleQuestionPool[Math.floor(Math.random() * eligibleQuestionPool.length)];
     const currentItem = {
       text:
         currentQuestion?.name ??
@@ -95,6 +102,7 @@ export function useSlotMachine(
 
     void incrementRollCount();
     setFilterWarning(false);
+    setIsProgressPromptOpen(false);
     setHasRandomized(true);
     setIsSpinning(true);
     setIsSlotLanded(false);
@@ -114,6 +122,16 @@ export function useSlotMachine(
 
   function clearFilterWarning() {
     setFilterWarning(false);
+  }
+
+  function handleQuestionLinkOpen(number: string) {
+    if (
+      window.matchMedia("(min-width: 640px)").matches &&
+      !isSpinning && isSlotLanded && isQuestionVisible &&
+      revealedQuestion?.question_number === number
+    ) {
+      setIsProgressPromptOpen(true);
+    }
   }
 
   function handleSlotTextChange(index: number) {
@@ -140,12 +158,14 @@ export function useSlotMachine(
   return {
     clearFilterWarning,
     currentSlotQuestion: activeCurrentSlotQuestion,
-    filterWarning,
+    filterWarning: warning,
+    handleQuestionLinkOpen,
     handleRandomize,
     handleSlotTextChange,
     handleSpinTextAnimationComplete,
     hasRandomized,
     isQuestionVisible,
+    isProgressPromptOpen,
     isSlotLanded,
     isSpinning,
     revealedQuestion,

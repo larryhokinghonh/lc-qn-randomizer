@@ -1,7 +1,8 @@
 import type { Question, QuestionNote } from "@/types/types";
 import { compareQuestionNumbers } from "@/lib/sidebar-questions";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 
-export const QUESTION_NOTE_KEY_PREFIX = "lc-question-randomizer.note.v1:";
+export const QUESTION_NOTE_KEY_PREFIX = STORAGE_KEYS.notePrefix;
 
 export function questionNoteKey(questionNumber: string) {
   return `${QUESTION_NOTE_KEY_PREFIX}${encodeURIComponent(questionNumber)}`;
