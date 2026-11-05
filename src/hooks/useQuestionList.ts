@@ -80,7 +80,7 @@ export function useQuestionList({ prepared, query, scrollRef, navigationRef, isO
     const row = Array.from(elementRef.current?.children ?? []).find(
       (element) => element instanceof HTMLElement && element.dataset.questionNumber === number,
     );
-    const controls = row?.querySelectorAll<HTMLElement>("button, a[href], textarea");
+    const controls = row?.querySelectorAll<HTMLElement>("button:not(:disabled), a[href], textarea:not(:disabled), select:not(:disabled)");
     const target = pendingFocus.kind === "first" || pendingFocus.edge === "first" ? controls?.item(0) : controls?.item(controls.length - 1);
     if (target) {
       handledFocusRef.current = pendingFocus;
@@ -105,7 +105,7 @@ export function useQuestionList({ prepared, query, scrollRef, navigationRef, isO
     const row = event.target.closest<HTMLElement>("[data-question-number]");
     const index = row?.dataset.questionNumber ? indexes.get(row.dataset.questionNumber) : undefined;
     if (!row || index === undefined) return;
-    const controls = Array.from(row.querySelectorAll<HTMLElement>("button, a[href], textarea"));
+    const controls = Array.from(row.querySelectorAll<HTMLElement>("button:not(:disabled), a[href], textarea:not(:disabled), select:not(:disabled)"));
     const controlIndex = controls.indexOf(event.target);
     if (controlIndex < 0) return;
     event.preventDefault();

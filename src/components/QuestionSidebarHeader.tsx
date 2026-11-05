@@ -3,6 +3,7 @@
 import type { RefObject } from "react";
 
 import { useQuestionNotesStatus } from "@/hooks/useQuestionNotes";
+import { useQuestionProgressStatus } from "@/hooks/useQuestionProgress";
 import { exportQuestionNotes } from "@/lib/question-notes-store";
 import type { Question } from "@/types/types";
 
@@ -20,6 +21,7 @@ export default function QuestionSidebarControls({
   id, onClose, onSearch, questions, search, searchRef, toggleClassName,
 }: QuestionSidebarControlsProps) {
   const { hasNotes, notesError } = useQuestionNotesStatus();
+  const { progressError } = useQuestionProgressStatus();
   return (
     <>
       <div className="flex h-18 shrink-0 items-center gap-4 border-b border-zinc-300 px-4 dark:border-zinc-700">
@@ -50,6 +52,9 @@ export default function QuestionSidebarControls({
       </div>
       {notesError ? (
         <p className="shrink-0 border-b border-amber-500 px-4 py-3 text-xs leading-5 text-amber-800 dark:text-amber-200" role="alert">{notesError}</p>
+      ) : null}
+      {progressError ? (
+        <p className="shrink-0 border-b border-amber-500 px-4 py-3 text-xs leading-5 text-amber-800 dark:text-amber-200" role="alert">{progressError}</p>
       ) : null}
     </>
   );

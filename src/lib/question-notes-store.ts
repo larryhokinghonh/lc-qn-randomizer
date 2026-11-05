@@ -6,6 +6,7 @@ import {
   QUESTION_NOTE_KEY_PREFIX,
   questionNoteKey,
 } from "@/lib/question-notes";
+import { getStorageKeys, LEGACY_STORAGE_KEYS } from "@/lib/storage-keys";
 import type { Question, QuestionNote } from "@/types/types";
 
 type NotesStatus = { hasNotes: boolean; notesError: string };
@@ -78,9 +79,34 @@ function initialize() {
   initialized = true;
   try {
     const storage = window.localStorage;
-    for (let index = 0; index < storage.length; index++) {
-      const key = storage.key(index);
-      if (key?.startsWith(QUESTION_NOTE_KEY_PREFIX)) loadNote(key, storage.getItem(key));
+    const keys = getStorageKeys(storage);
+    for (const key of keys) {
+      if (key.startsWith(QUESTION_NOTE_KEY_PREFIX)) loadNote(key, storage.getItem(key));
+    }
+    for (const legacyKey of keys) {
+      if (!legacyKey.startsWith(LEGACY_STORAGE_KEYS.notePrefix)) continue;
+      try {
+        const number = decodeURIComponent(legacyKey.slice(LEGACY_STORAGE_KEYS.notePrefix.length));
+        const raw = storage.getItem(legacyKey);
+        const value: unknown = raw === null ? null : JSON.parse(raw);
+        if (!isQuestionNote(value) || value.question_number !== number || LEGACY_STORAGE_KEYS.notePrefix + encodeURIComponent(number) !== legacyKey) {
+          throw new Error("Invalid legacy note");
+        }
+        const key = questionNoteKey(number);
+        const destination = storage.getItem(key);
+        if (!notes.has(number)) replaceNote(number, value);
+        // Keep a malformed destination untouched until the user edits the note.
+        if (destination !== null && invalidKeys.has(key)) continue;
+        try {
+          if (destination === null) storage.setItem(key, raw ?? "");
+          storage.removeItem(legacyKey);
+        } catch {
+          dirty.add(number);
+          failed.add(number);
+        }
+      } catch {
+        invalidKeys.add(legacyKey);
+      }
     }
   } catch {
     readUnavailable = true;
@@ -113,9 +139,12 @@ export function flushQuestionNotes() {
     try {
       if (note) window.localStorage.setItem(key, JSON.stringify(note));
       else window.localStorage.removeItem(key);
+      const legacyKey = LEGACY_STORAGE_KEYS.notePrefix + encodeURIComponent(number);
+      if (window.localStorage.getItem(legacyKey) !== null) window.localStorage.removeItem(legacyKey);
       dirty.delete(number);
       failed.delete(number);
       invalidKeys.delete(key);
+      invalidKeys.delete(legacyKey);
     } catch {
       failed.add(number);
     }

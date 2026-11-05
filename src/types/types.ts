@@ -1,5 +1,9 @@
 export type Difficulty = "Easy" | "Medium" | "Hard";
 
+export type QuestionProgress = "new" | "attempted" | "solved";
+
+export type RandomizationWarning = "no-matches" | "all-solved";
+
 export type Question = {
   name: string;
   question_number: string;

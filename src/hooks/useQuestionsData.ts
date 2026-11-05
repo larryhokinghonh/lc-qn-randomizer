@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { LEGACY_STORAGE_KEYS, STORAGE_KEYS } from "@/lib/storage-keys";
 
 import type {
   CounterResponse,
@@ -8,9 +9,9 @@ import type {
   QuestionsResponse,
 } from "@/types/types";
 
-const QUESTIONS_CACHE_KEY = "lc-question-randomizer.questions";
-const QUESTIONS_SYNCED_AT_CACHE_KEY = "lc-question-randomizer.synced-at";
-const QUESTIONS_CACHE_VERSION_KEY = "lc-question-randomizer.questions-version";
+const QUESTIONS_CACHE_KEY = STORAGE_KEYS.questions;
+const QUESTIONS_SYNCED_AT_CACHE_KEY = STORAGE_KEYS.syncedAt;
+const QUESTIONS_CACHE_VERSION_KEY = STORAGE_KEYS.questionsVersion;
 
 // Increase this value when users' cache needs a full update
 const QUESTIONS_CACHE_VERSION = "2";
@@ -77,31 +78,24 @@ function isCounterResponse(value: unknown): value is CounterResponse {
   );
 }
 
-function clearQuestionCache() {
+type QuestionCacheKeys = { questions: string; syncedAt: string; questionsVersion: string };
+
+function clearQuestionCache(keys: QuestionCacheKeys = STORAGE_KEYS) {
   try {
-    window.localStorage.removeItem(QUESTIONS_CACHE_KEY);
-    window.localStorage.removeItem(QUESTIONS_SYNCED_AT_CACHE_KEY);
-    window.localStorage.removeItem(QUESTIONS_CACHE_VERSION_KEY);
+    window.localStorage.removeItem(keys.questions);
+    window.localStorage.removeItem(keys.syncedAt);
+    window.localStorage.removeItem(keys.questionsVersion);
   } catch {
     return;
   }
 }
 
-function getCachedQuestions() {
+function readQuestionCache(storage: Storage, keys: QuestionCacheKeys) {
+  const cachedQuestions = storage.getItem(keys.questions);
+  const cachedSyncedAt = storage.getItem(keys.syncedAt);
+  const version = storage.getItem(keys.questionsVersion);
   try {
-    const cachedQuestions = window.localStorage.getItem(QUESTIONS_CACHE_KEY);
-    const cachedSyncedAt = window.localStorage.getItem(
-      QUESTIONS_SYNCED_AT_CACHE_KEY,
-    );
-
-    if (!cachedQuestions && !cachedSyncedAt) {
-      return null;
-    }
-
-    if (!cachedQuestions || !cachedSyncedAt) {
-      clearQuestionCache();
-      return null;
-    }
+    if (!cachedQuestions || !cachedSyncedAt) return null;
 
     const questions: unknown = JSON.parse(cachedQuestions);
 
@@ -110,7 +104,6 @@ function getCachedQuestions() {
       !questions.every(isQuestion) ||
       !isValidTimestamp(cachedSyncedAt)
     ) {
-      clearQuestionCache();
       return null;
     }
 
@@ -118,12 +111,44 @@ function getCachedQuestions() {
       questions,
       syncedAt: cachedSyncedAt,
       requiresFullRefresh:
-        window.localStorage.getItem(QUESTIONS_CACHE_VERSION_KEY) !== QUESTIONS_CACHE_VERSION,
+        version !== QUESTIONS_CACHE_VERSION,
     };
   } catch {
-    clearQuestionCache();
     return null;
   }
+}
+
+function getCachedQuestions() {
+  try {
+    const storage = window.localStorage;
+    const current = readQuestionCache(storage, STORAGE_KEYS);
+    if (current) {
+      clearQuestionCache(LEGACY_STORAGE_KEYS);
+      return current;
+    }
+    const legacy = readQuestionCache(storage, LEGACY_STORAGE_KEYS);
+    if (legacy) {
+      const version = storage.getItem(LEGACY_STORAGE_KEYS.questionsVersion);
+      try {
+        // An interrupted copy must not leave a stale cache data
+        storage.removeItem(QUESTIONS_CACHE_VERSION_KEY);
+        storage.removeItem(QUESTIONS_SYNCED_AT_CACHE_KEY);
+        storage.setItem(QUESTIONS_CACHE_KEY, JSON.stringify(legacy.questions));
+        storage.setItem(QUESTIONS_SYNCED_AT_CACHE_KEY, legacy.syncedAt);
+        if (version !== null) storage.setItem(QUESTIONS_CACHE_VERSION_KEY, version);
+        clearQuestionCache(LEGACY_STORAGE_KEYS);
+      } catch {
+        // The validated legacy cache remains usable if migration fails
+        clearQuestionCache();
+      }
+      return legacy;
+    }
+    clearQuestionCache();
+    clearQuestionCache(LEGACY_STORAGE_KEYS);
+  } catch {
+    // Storage may be unavailable; retain existing data for now
+  }
+  return null;
 }
 
 function cacheQuestions(questions: Question[], syncedAt: string) {

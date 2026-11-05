@@ -24,7 +24,10 @@ export default function Home() {
   } = useQuestionsData();
   const {
     clearQuestionTopics,
+    eligibleQuestionPool,
     filteredQuestionTopics,
+    isProgressLoaded,
+    progressError,
     questionPool,
     selectedDifficulties,
     selectedQuestionTopics,
@@ -41,16 +44,18 @@ export default function Home() {
     currentSlotQuestion,
     filterWarning,
     handleRandomize,
+    handleQuestionLinkOpen,
     handleSlotTextChange,
     handleSpinTextAnimationComplete,
     hasRandomized,
     isQuestionVisible,
+    isProgressPromptOpen,
     isSlotLanded,
     isSpinning,
     revealedQuestion,
     spinItems,
     spinKey,
-  } = useSlotMachine(questions, questionPool, incrementRollCount);
+  } = useSlotMachine(questions, questionPool, eligibleQuestionPool, incrementRollCount);
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -109,16 +114,24 @@ export default function Home() {
             filterWarning={filterWarning}
             handleRandomize={handleRandomize}
             hasRandomized={hasRandomized}
-            isLoadingQuestions={isLoadingQuestions}
+            isLoadingQuestions={isLoadingQuestions || !isProgressLoaded}
+            isProgressPromptOpen={isProgressPromptOpen}
             isQuestionVisible={isQuestionVisible}
             isSlotLanded={isSlotLanded}
             isSpinning={isSpinning}
             onSlotTextChange={handleSlotTextChange}
+            onQuestionLinkOpen={handleQuestionLinkOpen}
             onSpinTextAnimationComplete={handleSpinTextAnimationComplete}
             revealedQuestion={revealedQuestion}
             spinItems={spinItems}
             spinKey={spinKey}
           />
+
+          {progressError && (
+            <p className="hidden border border-amber-500 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:text-amber-200 sm:block" role="alert">
+              {progressError}
+            </p>
+          )}
 
           {dataError && (
             <div

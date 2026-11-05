@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import { useQuestionProgressStatus } from "@/hooks/useQuestionProgress";
+import { getEligibleQuestions } from "@/lib/question-progress";
 import {
   getFilteredQuestions,
 } from "@/lib/question-utils";
@@ -13,6 +15,7 @@ import type {
 } from "@/types/types";
 
 export function useQuestionFilters(questions: Question[]) {
+  const { isLoaded: isProgressLoaded, stages, progressError } = useQuestionProgressStatus();
   const [selectedSpecialTopics, setSelectedSpecialTopics] = useState<
     SpecialTopic[]
   >([]);
@@ -39,6 +42,7 @@ export function useQuestionFilters(questions: Question[]) {
     selectedQuestionTopics,
     selectedDifficulties,
   );
+  const eligibleQuestionPool = getEligibleQuestions(questionPool, stages);
   const filteredQuestionTopics = questionTopics.filter((topic) =>
     topic.toLowerCase().includes(topicSearch.trim().toLowerCase()),
   );
@@ -78,7 +82,10 @@ export function useQuestionFilters(questions: Question[]) {
 
   return {
     clearQuestionTopics,
+    eligibleQuestionPool,
     filteredQuestionTopics,
+    isProgressLoaded,
+    progressError,
     questionPool,
     selectedDifficulties,
     selectedQuestionTopics,
