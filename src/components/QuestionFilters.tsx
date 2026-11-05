@@ -11,10 +11,12 @@ import type {
 
 type QuestionFiltersProps = {
   filteredQuestionTopics: QuestionTopic[];
+  includeZeroCountTopics: boolean;
   isSpinning: boolean;
   onClearFilterWarning: () => void;
   onClearQuestionTopics: () => void;
   onTopicSearchChange: (topicSearch: string) => void;
+  onIncludeZeroCountTopicsChange: (include: boolean) => void;
   onToggleDifficulty: (difficulty: Difficulty) => void;
   onToggleQuestionTopic: (topic: QuestionTopic) => void;
   onToggleSpecialTopic: (topic: SpecialTopic) => void;
@@ -22,15 +24,18 @@ type QuestionFiltersProps = {
   selectedQuestionTopics: QuestionTopic[];
   selectedSpecialTopics: SpecialTopic[];
   specialTopics: SpecialTopic[];
+  topicQuestionCounts: ReadonlyMap<QuestionTopic, number>;
   topicSearch: string;
 };
 
 export default function QuestionFilters({
   filteredQuestionTopics,
+  includeZeroCountTopics,
   isSpinning,
   onClearFilterWarning,
   onClearQuestionTopics,
   onTopicSearchChange,
+  onIncludeZeroCountTopicsChange,
   onToggleDifficulty,
   onToggleQuestionTopic,
   onToggleSpecialTopic,
@@ -38,6 +43,7 @@ export default function QuestionFilters({
   selectedQuestionTopics,
   selectedSpecialTopics,
   specialTopics,
+  topicQuestionCounts,
   topicSearch,
 }: QuestionFiltersProps) {
   const topicDropdownRef = useRef<HTMLDivElement>(null);
@@ -103,17 +109,29 @@ export default function QuestionFilters({
 
             {isTopicDropdownOpen && (
               <div className="absolute left-0 right-0 top-full mt-2 border border-zinc-300 rounded-xl bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
-                <input
-                  className="mb-3 h-11 w-full border border-zinc-300 rounded-lg bg-white px-3 text-sm text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-[#ffa116] dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
-                  onChange={(event) => onTopicSearchChange(event.target.value)}
-                  onFocus={() => setIsTopicDropdownOpen(true)}
-                  placeholder="Search topics"
-                  type="search"
-                  value={topicSearch}
-                />
+                <div className="mb-3 flex items-center gap-3">
+                  <input
+                    className="h-11 min-w-0 flex-1 border border-zinc-300 rounded-lg bg-white px-3 text-sm text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-[#ffa116] dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+                    onChange={(event) => onTopicSearchChange(event.target.value)}
+                    onFocus={() => setIsTopicDropdownOpen(true)}
+                    placeholder="Search topics"
+                    type="search"
+                    value={topicSearch}
+                  />
+                  <label className="flex max-w-44 shrink-0 cursor-pointer items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                    <input
+                      checked={includeZeroCountTopics}
+                      className="shrink-0"
+                      onChange={(event) => onIncludeZeroCountTopicsChange(event.target.checked)}
+                      type="checkbox"
+                    />
+                    <span>Show empty topics</span>
+                  </label>
+                </div>
                 <div className="scrollbar-none max-h-56 overflow-y-auto mask-[linear-gradient(to_bottom,transparent,black_20px,black_calc(100%-20px),transparent)] [webkit-mask-image:linear-gradient(to_bottom,transparent,black_20px,black_calc(100%-20px),transparent)]">
                   {filteredQuestionTopics.map((topic) => {
                     const isSelected = selectedQuestionTopics.includes(topic);
+                    const count = topicQuestionCounts.get(topic) ?? 0;
 
                     return (
                       <label
@@ -130,7 +148,11 @@ export default function QuestionFilters({
                           onChange={() => toggleQuestionTopic(topic)}
                           type="checkbox"
                         />
-                        {topic}
+                        <span className="min-w-0 wrap-break-word">
+                          {topic}{" "}
+                          <span aria-hidden="true" className="whitespace-nowrap text-zinc-500 dark:text-zinc-400">({count})</span>
+                          <span className="sr-only">{count} {count === 1 ? "question" : "questions"}</span>
+                        </span>
                       </label>
                     );
                   })}

@@ -6,6 +6,7 @@ import { useQuestionProgressStatus } from "@/hooks/useQuestionProgress";
 import { getEligibleQuestions } from "@/lib/question-progress";
 import {
   getFilteredQuestions,
+  getTopicQuestionCounts,
 } from "@/lib/question-utils";
 import type {
   Difficulty,
@@ -26,6 +27,7 @@ export function useQuestionFilters(questions: Question[]) {
     Difficulty[]
   >([]);
   const [topicSearch, setTopicSearch] = useState("");
+  const [includeZeroCountTopics, setIncludeZeroCountTopics] = useState(false);
 
   const specialTopics = Array.from(
     new Set(questions.flatMap((question) => question.special_topics)),
@@ -43,7 +45,14 @@ export function useQuestionFilters(questions: Question[]) {
     selectedDifficulties,
   );
   const eligibleQuestionPool = getEligibleQuestions(questionPool, stages);
+  const topicQuestionCounts = getTopicQuestionCounts(
+    questions,
+    availableSelectedSpecialTopics,
+    selectedDifficulties,
+    stages,
+  );
   const filteredQuestionTopics = questionTopics.filter((topic) =>
+    (includeZeroCountTopics || (topicQuestionCounts.get(topic) ?? 0) > 0) &&
     topic.toLowerCase().includes(topicSearch.trim().toLowerCase()),
   );
 
@@ -84,6 +93,7 @@ export function useQuestionFilters(questions: Question[]) {
     clearQuestionTopics,
     eligibleQuestionPool,
     filteredQuestionTopics,
+    includeZeroCountTopics,
     isProgressLoaded,
     progressError,
     questionPool,
@@ -91,10 +101,12 @@ export function useQuestionFilters(questions: Question[]) {
     selectedQuestionTopics,
     selectedSpecialTopics: availableSelectedSpecialTopics,
     setTopicSearch,
+    setIncludeZeroCountTopics,
     specialTopics,
     toggleDifficulty,
     toggleQuestionTopic,
     toggleSpecialTopic,
+    topicQuestionCounts,
     topicSearch,
   };
 }

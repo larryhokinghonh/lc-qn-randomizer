@@ -1,6 +1,8 @@
+import { getEligibleQuestions } from "@/lib/question-progress";
 import type {
   Difficulty,
   Question,
+  QuestionProgress,
   QuestionTopic,
   SpecialTopic,
 } from "@/types/types";
@@ -76,6 +78,22 @@ export function getFilteredQuestions(
       (selectedDifficulties.length === 0 ||
         selectedDifficulties.includes(question.difficulty)),
   );
+}
+
+export function getTopicQuestionCounts(
+  questions: Question[],
+  selectedSpecialTopics: SpecialTopic[],
+  selectedDifficulties: Difficulty[],
+  progress: ReadonlyMap<string, QuestionProgress>,
+) {
+  const matchingQuestions = getFilteredQuestions(questions, selectedSpecialTopics, [], selectedDifficulties);
+  const counts = new Map<QuestionTopic, number>();
+  for (const question of getEligibleQuestions(matchingQuestions, progress)) {
+    for (const topic of new Set(question.topics)) {
+      counts.set(topic, (counts.get(topic) ?? 0) + 1);
+    }
+  }
+  return counts;
 }
 
 export function getDifficultyColorClass(difficulty: Difficulty) {

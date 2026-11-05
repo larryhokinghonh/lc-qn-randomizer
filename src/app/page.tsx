@@ -26,6 +26,7 @@ export default function Home() {
     clearQuestionTopics,
     eligibleQuestionPool,
     filteredQuestionTopics,
+    includeZeroCountTopics,
     isProgressLoaded,
     progressError,
     questionPool,
@@ -33,10 +34,12 @@ export default function Home() {
     selectedQuestionTopics,
     selectedSpecialTopics,
     setTopicSearch,
+    setIncludeZeroCountTopics,
     specialTopics,
     toggleDifficulty,
     toggleQuestionTopic,
     toggleSpecialTopic,
+    topicQuestionCounts,
     topicSearch,
   } = useQuestionFilters(questions);
   const {
@@ -94,6 +97,7 @@ export default function Home() {
 
           <QuestionFilters
             filteredQuestionTopics={filteredQuestionTopics}
+            includeZeroCountTopics={includeZeroCountTopics}
             isSpinning={isSpinning}
             onClearFilterWarning={clearFilterWarning}
             onClearQuestionTopics={clearQuestionTopics}
@@ -101,10 +105,12 @@ export default function Home() {
             onToggleQuestionTopic={toggleQuestionTopic}
             onToggleSpecialTopic={toggleSpecialTopic}
             onTopicSearchChange={setTopicSearch}
+            onIncludeZeroCountTopicsChange={setIncludeZeroCountTopics}
             selectedDifficulties={selectedDifficulties}
             selectedQuestionTopics={selectedQuestionTopics}
             selectedSpecialTopics={selectedSpecialTopics}
             specialTopics={specialTopics}
+            topicQuestionCounts={topicQuestionCounts}
             topicSearch={topicSearch}
           />
 
