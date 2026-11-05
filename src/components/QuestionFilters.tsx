@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 
 import { DIFFICULTIES, getDifficultyColorClass } from "@/lib/question-utils";
 import type {
@@ -10,6 +11,8 @@ import type {
 } from "@/types/types";
 
 type QuestionFiltersProps = {
+  customPoolControl: ReactNode;
+  isCustomPoolActive: boolean;
   filteredQuestionTopics: QuestionTopic[];
   includeZeroCountTopics: boolean;
   isSpinning: boolean;
@@ -29,6 +32,8 @@ type QuestionFiltersProps = {
 };
 
 export default function QuestionFilters({
+  customPoolControl,
+  isCustomPoolActive,
   filteredQuestionTopics,
   includeZeroCountTopics,
   isSpinning,
@@ -48,6 +53,7 @@ export default function QuestionFilters({
 }: QuestionFiltersProps) {
   const topicDropdownRef = useRef<HTMLDivElement>(null);
   const [isTopicDropdownOpen, setIsTopicDropdownOpen] = useState(false);
+  const areFiltersDisabled = isSpinning || isCustomPoolActive;
 
   useEffect(() => {
     if (!isTopicDropdownOpen) {
@@ -98,7 +104,7 @@ export default function QuestionFilters({
           <div className="relative z-10 flex-1" ref={topicDropdownRef}>
             <button
               className="flex h-12 w-full items-center justify-between border border-zinc-300 rounded-xl bg-black px-4 text-left text-sm font-semibold text-zinc-200 shadow-2xl/35 transition hover:border-[#ffa116] hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-700 dark:text-zinc-200"
-              disabled={isSpinning}
+              disabled={areFiltersDisabled}
               onClick={() =>
                 setIsTopicDropdownOpen((currentValue) => !currentValue)
               }
@@ -107,21 +113,23 @@ export default function QuestionFilters({
               <span>Search and select topics</span>
             </button>
 
-            {isTopicDropdownOpen && (
+            {isTopicDropdownOpen && !isCustomPoolActive && (
               <div className="absolute left-0 right-0 top-full mt-2 border border-zinc-300 rounded-xl bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
                 <div className="mb-3 flex items-center gap-3">
                   <input
                     className="h-11 min-w-0 flex-1 border border-zinc-300 rounded-lg bg-white px-3 text-sm text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-[#ffa116] dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
+                    disabled={areFiltersDisabled}
                     onChange={(event) => onTopicSearchChange(event.target.value)}
                     onFocus={() => setIsTopicDropdownOpen(true)}
                     placeholder="Search topics"
                     type="search"
                     value={topicSearch}
                   />
-                  <label className="flex max-w-44 shrink-0 cursor-pointer items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                  <label className="flex max-w-32 shrink-0 cursor-pointer items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-300">
                     <input
                       checked={includeZeroCountTopics}
                       className="shrink-0"
+                      disabled={areFiltersDisabled}
                       onChange={(event) => onIncludeZeroCountTopicsChange(event.target.checked)}
                       type="checkbox"
                     />
@@ -144,7 +152,7 @@ export default function QuestionFilters({
                       >
                         <input
                           checked={isSelected}
-                          disabled={isSpinning}
+                          disabled={areFiltersDisabled}
                           onChange={() => toggleQuestionTopic(topic)}
                           type="checkbox"
                         />
@@ -168,12 +176,13 @@ export default function QuestionFilters({
 
           <button
             className="h-12 rounded-xl bg-zinc-700 px-4 text-sm font-semibold text-zinc-200 shadow-2xl/35 transition hover:border-[#ffa116] hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
-            disabled={isSpinning || selectedQuestionTopics.length === 0}
+            disabled={areFiltersDisabled || selectedQuestionTopics.length === 0}
             onClick={clearQuestionTopics}
             type="button"
           >
             Clear topics
           </button>
+          {customPoolControl}
         </div>
       </div>
 
@@ -182,7 +191,7 @@ export default function QuestionFilters({
           {selectedQuestionTopics.map((topic) => (
             <button
               className="inline-flex min-h-9 rounded-lg bg-black cursor-pointer items-center border border-zinc-300 px-3 py-1.5 text-sm font-semibold text-zinc-200 shadow-2xl/35 transition disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-700 dark:hover:border-[#ffa116]"
-              disabled={isSpinning}
+              disabled={areFiltersDisabled}
               key={topic}
               onClick={() => toggleQuestionTopic(topic)}
               type="button"
@@ -203,13 +212,13 @@ export default function QuestionFilters({
                 isSelected
                   ? `${getDifficultyColorClass(difficulty)} border-current bg-transparent`
                   : "border-zinc-300 bg-black text-zinc-200 hover:border-[#ffa116] dark:border-zinc-700"
-              } ${isSpinning ? "cursor-not-allowed opacity-70" : ""}`}
+              } ${areFiltersDisabled ? "cursor-not-allowed opacity-70" : ""}`}
               key={difficulty}
             >
               <input
                 checked={isSelected}
                 className="sr-only"
-                disabled={isSpinning}
+                disabled={areFiltersDisabled}
                 onChange={() => toggleDifficulty(difficulty)}
                 type="checkbox"
               />
@@ -229,13 +238,13 @@ export default function QuestionFilters({
                 isSelected
                   ? "border-[#ffa116]"
                   : "border-zinc-300 hover:border-[#ffa116] dark:border-zinc-700"
-              } ${isSpinning ? "cursor-not-allowed opacity-70" : ""}`}
+              } ${areFiltersDisabled ? "cursor-not-allowed opacity-70" : ""}`}
               key={topic}
             >
               <input
                 checked={isSelected}
                 className="sr-only"
-                disabled={isSpinning}
+                disabled={areFiltersDisabled}
                 onChange={() => toggleSpecialTopic(topic)}
                 type="checkbox"
               />

@@ -3,6 +3,7 @@ export const STORAGE_KEYS = {
   syncedAt: "lcqnrandomizer.synced-at",
   questionsVersion: "lcqnrandomizer.questions-version",
   progress: "lcqnrandomizer.progress.v1",
+  customPool: "lcqnrandomizer.custom-pool.v1",
   notePrefix: "lcqnrandomizer.note.v1:",
 } as const;
 

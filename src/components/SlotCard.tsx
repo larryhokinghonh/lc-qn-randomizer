@@ -51,7 +51,9 @@ export default function SlotCard({
 }: SlotCardProps) {
   const slotText = (
     <RotatingText
-      key={`${hasRandomized ? "spin" : "idle"}-${spinKey}`}
+      key={hasRandomized
+        ? `spin-${spinKey}`
+        : `idle-${spinItems.map((item) => item.question?.question_number ?? "").join(",")}`}
       texts={spinItems.map((spinItem) => spinItem.text)}
       loop={!hasRandomized}
       rotationInterval={hasRandomized ? 100 : 2500}

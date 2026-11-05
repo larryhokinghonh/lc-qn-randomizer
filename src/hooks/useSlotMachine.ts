@@ -21,8 +21,10 @@ export function useSlotMachine(
     null,
   );
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
-  const [currentSlotQuestion, setCurrentSlotQuestion] =
-    useState<Question | null>(null);
+  const [slotPosition, setSlotPosition] = useState<{
+    items: SpinItem[];
+    index: number;
+  } | null>(null);
   const [pendingQuestion, setPendingQuestion] = useState<Question | null>(null);
   const [revealedQuestion, setRevealedQuestion] = useState<Question | null>(null);
   const [spinItems, setSpinItems] = useState<SpinItem[]>([
@@ -49,7 +51,7 @@ export function useSlotMachine(
   );
   const activeSpinItems = hasRandomized ? spinItems : initialSpinItems;
   const activeCurrentSlotQuestion =
-    currentSlotQuestion ?? activeSpinItems[0]?.question ?? null;
+    activeSpinItems[slotPosition?.items === activeSpinItems ? slotPosition.index : 0]?.question ?? null;
 
   useEffect(() => {
     return () => {
@@ -93,6 +95,7 @@ export function useSlotMachine(
     const currentItem = {
       text:
         currentQuestion?.name ??
+        activeCurrentSlotQuestion?.name ??
         (currentSlotTextRef.current === DEFAULT_SLOT_TEXT
           ? activeSpinItems[0]?.text
           : currentSlotTextRef.current) ??
@@ -138,7 +141,7 @@ export function useSlotMachine(
     const spinItem = activeSpinItems[index];
 
     currentSlotTextRef.current = spinItem?.text ?? currentSlotTextRef.current;
-    setCurrentSlotQuestion(spinItem?.question ?? null);
+    setSlotPosition({ items: activeSpinItems, index });
   }
 
   function handleSpinTextAnimationComplete(index: number) {

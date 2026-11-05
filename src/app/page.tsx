@@ -4,15 +4,18 @@ import Link from "next/link";
 
 import Footer from "@/components/Footer";
 import QuestionFilters from "@/components/QuestionFilters";
+import QuestionPoolPicker from "@/components/QuestionPoolPicker";
 import QuestionSidebar from "@/components/QuestionSidebar";
 import ScrollNavbar from "@/components/ScrollNavbar";
 import ScrollReveal from "@/components/ScrollReveal";
 import SlotCard from "@/components/SlotCard";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useCustomQuestionPool } from "@/hooks/useCustomQuestionPool";
 import { useQuestionFilters } from "@/hooks/useQuestionFilters";
 import { useQuestionsData } from "@/hooks/useQuestionsData";
 import { useSlotMachine } from "@/hooks/useSlotMachine";
 import { useTheme } from "@/hooks/useTheme";
+import { getRandomizationPools } from "@/lib/custom-question-pool";
 
 export default function Home() {
   const {
@@ -43,6 +46,17 @@ export default function Home() {
     topicSearch,
   } = useQuestionFilters(questions);
   const {
+    addQuestion,
+    removeQuestion,
+    customQuestions,
+    isLoaded: isCustomPoolLoaded,
+    isTabletOrDesktop,
+    storageError,
+  } = useCustomQuestionPool(questions);
+  const pools = getRandomizationPools(
+    questions, questionPool, eligibleQuestionPool, customQuestions, isTabletOrDesktop,
+  );
+  const {
     clearFilterWarning,
     currentSlotQuestion,
     filterWarning,
@@ -58,7 +72,7 @@ export default function Home() {
     revealedQuestion,
     spinItems,
     spinKey,
-  } = useSlotMachine(questions, questionPool, eligibleQuestionPool, incrementRollCount);
+  } = useSlotMachine(pools.idleQuestions, pools.questionPool, pools.eligibleQuestionPool, incrementRollCount);
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -96,8 +110,20 @@ export default function Home() {
           </header>
 
           <QuestionFilters
+            customPoolControl={isTabletOrDesktop ? (
+              <QuestionPoolPicker
+                dataError={dataError}
+                isLoading={isLoadingQuestions || !isCustomPoolLoaded}
+                onAdd={addQuestion}
+                onRemove={removeQuestion}
+                questions={questions}
+                selectedQuestions={customQuestions}
+                storageError={storageError}
+              />
+            ) : null}
             filteredQuestionTopics={filteredQuestionTopics}
             includeZeroCountTopics={includeZeroCountTopics}
+            isCustomPoolActive={pools.isCustomPoolActive}
             isSpinning={isSpinning}
             onClearFilterWarning={clearFilterWarning}
             onClearQuestionTopics={clearQuestionTopics}
@@ -120,7 +146,7 @@ export default function Home() {
             filterWarning={filterWarning}
             handleRandomize={handleRandomize}
             hasRandomized={hasRandomized}
-            isLoadingQuestions={isLoadingQuestions || !isProgressLoaded}
+            isLoadingQuestions={isLoadingQuestions || !isProgressLoaded || !isCustomPoolLoaded}
             isProgressPromptOpen={isProgressPromptOpen}
             isQuestionVisible={isQuestionVisible}
             isSlotLanded={isSlotLanded}
