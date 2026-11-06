@@ -3,6 +3,7 @@ import { Pool } from "pg";
 const connectionString = process.env.DATABASE_URL;
 const sslMode = process.env.SSL_MODE;
 const databaseCaCert = process.env.DATABASE_CA_CERT;
+const poolMax = Number(process.env.DATABASE_POOL_MAX);
 
 if (!connectionString) {
   throw new Error("DATABASE_URL is not configured.");
@@ -10,6 +11,10 @@ if (!connectionString) {
 
 if (sslMode !== "disable" && sslMode !== "verify-full") {
   throw new Error('SSL_MODE must be either "disable" or "verify-full".');
+}
+
+if (!Number.isSafeInteger(poolMax) || poolMax < 1) {
+  throw new Error("DATABASE_POOL_MAX must be a positive integer.");
 }
 
 const poolConnectionString = new URL(connectionString);
@@ -50,7 +55,10 @@ export const pool =
   globalForPg.pgPool ??
   new Pool({
     connectionString: poolConnectionString.toString(),
-    max: Number(process.env.DATABASE_POOL_MAX ?? 5),
+    max: poolMax,
+    connectionTimeoutMillis: 5_000,
+    statement_timeout: 10_000,
+    lock_timeout: 2_000,
     ssl,
   });
 
